@@ -12,7 +12,7 @@
 ### License: Apache License v2.0
 ###############################################################
 
-export distro_name="Pegasus"
+export distro_name="Pegasus Linux"
 export distro_version="0.1"
 export source_distro_url="http://mirrors.163.com/tinycorelinux/9.x/x86/release/Core-current.iso"
 export source_distro_iso_file="Core-current.iso"
@@ -33,15 +33,26 @@ update_source_iso() {
 }
 
 extract_iso(){
+    export extracted_folder="$folder/bin/extractedIso"
     if [ ! -f "$folder/bin/$source_distro_iso_file" ] ; then 
-        echo "didn't find the target iso file: $folder/bin/$source_distro_iso_file"
-        echo "That may be because there were errors in downloading. Check your internet connections and try again"
+        echo "Didn't find the target iso file: $folder/bin/$source_distro_iso_file"
+        echo "That may be because there were errors in downloading. Check your internet connection and try again"
     fi
-    if [ ! -d "" ] ; then
-        mkdir "$folder/bin/extractedIso"
+    if [ ! -d "$extracted_folder" ] ; then
+        mkdir "$extracted_folder"
     fi
     echo "Extract $folder/bin/$source_distro_iso_file"
     7z x -y -o"$folder/bin/extractedIso"  "$folder/bin/$source_distro_iso_file"
+}
+
+create_iso(){
+    export new_iso_folder="$folder/bin/newIso"    
+
+    if [ ! -d "$new_iso_folder" ] ; then
+        mkdir "$new_iso_folder"
+    fi
+
+    mkisofs -r -V "$distro_name" -cache-inodes -J -l -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o $new_iso_folder/pegasus.iso $extracted_folder
 }
 
 help() {
@@ -53,6 +64,7 @@ help() {
 check_environment() {
         if  ! [ -x "$(command -v curl)" ] ;  then query="$query curl " ; fi
         if  ! [ -x "$(command -v 7z)" ] ;  then query="$query p7zip-full " ; fi
+        if  ! [ -x "$(command -v mkisofs)" ] ;  then query="$query genisoimage " ; fi
 
         if [ ! -z "$query" ]; then
 		echo -en "Error: missing dependencies: ${query}\n > Install missing dependencies now? [y/N]: "
@@ -105,6 +117,7 @@ while [ -n "$1" ]; do # while loop starts
         check_environment
         update_source_iso
         extract_iso
+        create_iso
         exit 0
         ;;
     *) 
