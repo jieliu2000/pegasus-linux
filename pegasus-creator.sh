@@ -55,6 +55,10 @@ create_iso(){
     mkisofs -r -V "$distro_name" -cache-inodes -J -l -b boot/isolinux/isolinux.bin -c boot/isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o $new_iso_folder/pegasus.iso $extracted_folder
 }
 
+update_files(){
+    cp -Rf "$folder/boot/boot.msg" "$extracted_folder/boot/isolinux/boot.msg"
+}
+
 help() {
         echo "Usage of $distro_name creator:"
         echo "  -h or --help      Print Help (this message) and exit"
@@ -117,6 +121,7 @@ while [ -n "$1" ]; do # while loop starts
         check_environment
         update_source_iso
         extract_iso
+        update_files
         create_iso
         exit 0
         ;;
